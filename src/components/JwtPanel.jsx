@@ -74,7 +74,7 @@ export default function JwtPanel({ headers }) {
               <CopyButton getText={() => JSON.stringify(header, null, 2)} size={12} className="w-5 h-5" />
             </div>
             <pre
-              className="text-xs font-mono bg-white/[0.02] border border-white/5 rounded-lg p-3 whitespace-pre-wrap leading-5"
+              className="min-w-0 max-w-full text-xs font-mono bg-white/[0.02] border border-white/5 rounded-lg p-3 whitespace-pre-wrap break-all leading-5"
               dangerouslySetInnerHTML={{ __html: highlightJson(JSON.stringify(header)) }}
             />
           </div>
@@ -87,7 +87,7 @@ export default function JwtPanel({ headers }) {
               <CopyButton getText={() => JSON.stringify(payload, null, 2)} size={12} className="w-5 h-5" />
             </div>
             <pre
-              className="text-xs font-mono bg-white/[0.02] border border-white/5 rounded-lg p-3 whitespace-pre-wrap leading-5 max-h-60 overflow-auto"
+              className="min-w-0 max-w-full text-xs font-mono bg-white/[0.02] border border-white/5 rounded-lg p-3 whitespace-pre-wrap break-all leading-5 max-h-60 overflow-auto"
               dangerouslySetInnerHTML={{ __html: highlightJson(JSON.stringify(payload)) }}
             />
           </div>

@@ -110,11 +110,11 @@ function UrlSection({ parsed, onQueryChange, onCurlUpdate }) {
 
   return (
     <Section label="URL" copyOptions={copyOptions}>
-      <div className="bg-white/[0.03] border border-white/10 rounded-xl p-4 font-mono text-sm break-all">
+      <div className="min-w-0 max-w-full bg-white/[0.03] border border-white/10 rounded-xl p-4 font-mono text-sm break-all">
         <div className="flex items-center gap-2 flex-wrap">
           <MethodBadge method={method} />
           <span
-            className="flex-1"
+            className="min-w-0 flex-1 break-all"
             dangerouslySetInnerHTML={{ __html: highlightUrl(url) }}
           />
         </div>
@@ -263,7 +263,7 @@ function HeadersSection({ headers }) {
           </p>
         ) : (
           <div
-            className="whitespace-pre-wrap leading-6"
+            className="min-w-0 max-w-full whitespace-pre-wrap break-all leading-6"
             dangerouslySetInnerHTML={{
               __html: highlightHeaders(sorted, maskSensitive),
             }}
@@ -341,15 +341,15 @@ function PayloadSection({ payload, bodyIsJson }) {
         </div>
       )}
 
-      <div className="bg-white/[0.03] border border-white/10 rounded-xl p-4 max-h-72 overflow-y-auto font-mono text-xs">
+      <div className="min-w-0 max-w-full bg-white/[0.03] border border-white/10 rounded-xl p-4 max-h-72 overflow-y-auto font-mono text-xs">
         {payload ? (
           bodyIsJson && pretty ? (
             <pre
-              className="whitespace-pre-wrap break-all leading-5"
+              className="min-w-0 max-w-full whitespace-pre-wrap break-all leading-5"
               dangerouslySetInnerHTML={{ __html: highlightJson(payload) }}
             />
           ) : (
-            <pre className="whitespace-pre-wrap break-all leading-5 text-gray-300">
+            <pre className="min-w-0 max-w-full whitespace-pre-wrap break-all leading-5 text-gray-300">
               {displayText}
             </pre>
           )
@@ -372,8 +372,8 @@ function MasterCurlBar({ parsed }) {
     },
   ];
   return (
-    <div className="flex items-center justify-between px-4 py-2.5 rounded-xl border border-white/10 bg-white/[0.02]">
-      <span className="text-xs text-gray-500 font-mono truncate mr-3">
+    <div className="flex min-w-0 items-center justify-between px-4 py-2.5 rounded-xl border border-white/10 bg-white/[0.02]">
+      <span className="min-w-0 flex-1 text-xs text-gray-500 font-mono truncate mr-3">
         <span className="text-gray-600">{parsed.method}</span> {parsed.url}
       </span>
       <CopyDropdown options={curlOptions} size={13} className="h-7 shrink-0" />

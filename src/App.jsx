@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useLayoutEffect, useCallback } from "react";
 import { Sun, Moon, Monitor, Terminal } from "lucide-react";
 
 import InputPanel from "./components/InputPanel.jsx";
@@ -25,7 +25,7 @@ import {
 function useTheme() {
   const [theme, setThemeState] = useState(getTheme);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const apply = (t) => {
       const prefersDark = window.matchMedia(
         "(prefers-color-scheme: dark)",
