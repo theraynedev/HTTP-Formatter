@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+*::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* JSON syntax highlighting */
+.json-key    { color: #93c5fd; }
+.json-string { color: #86efac; }
+.json-number { color: #fda4af; }
+.json-bool   { color: #f9a8d4; }
+.json-null   { color: #94a3b8; }
+
+/* URL syntax highlighting */
+.url-scheme  { color: #94a3b8; }
+.url-host    { color: #f8fafc; }
+.url-path    { color: #93c5fd; }
+.url-query-key   { color: #86efac; }
+.url-query-sep   { color: #94a3b8; }
+.url-query-val   { color: #fda4af; }
+
+/* Header highlighting */
+.hdr-name    { color: #93c5fd; }
+.hdr-sep     { color: #475569; }
+.hdr-value   { color: #e2e8f0; }
+.hdr-sensitive { color: #fca5a5; }
+
+/* Light mode overrides */
+.light .json-key    { color: #1d4ed8; }
+.light .json-string { color: #15803d; }
+.light .json-number { color: #be185d; }
+.light .json-bool   { color: #7c3aed; }
+.light .json-null   { color: #64748b; }
+.light .url-scheme  { color: #64748b; }
+.light .url-host    { color: #0f172a; }
+.light .url-path    { color: #1d4ed8; }
+.light .url-query-key   { color: #15803d; }
+.light .url-query-sep   { color: #64748b; }
+.light .url-query-val   { color: #be185d; }
+.light .hdr-name    { color: #1d4ed8; }
+.light .hdr-sep     { color: #94a3b8; }
+.light .hdr-value   { color: #0f172a; }
+.light .hdr-sensitive { color: #dc2626; }

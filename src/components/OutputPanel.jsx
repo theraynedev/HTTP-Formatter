@@ -1,0 +1,406 @@
+import { useState } from "react";
+import {
+  Search,
+  ArrowUpDown,
+  EyeOff,
+  Eye,
+  ChevronDown,
+  ChevronUp,
+  Plus,
+  Trash2,
+} from "lucide-react";
+import CopyDropdown from "./CopyDropdown.jsx";
+import MethodBadge from "./MethodBadge.jsx";
+import JwtPanel from "./JwtPanel.jsx";
+import {
+  highlightJson,
+  highlightUrl,
+  highlightHeaders,
+} from "../utils/highlight.js";
+import { reconstructCurl } from "../utils/parser.js";
+
+// ─── Section wrapper ──────────────────────────────────────────────────────────
+function Section({ label, children, copyOptions }) {
+  return (
+    <section>
+      <div className="flex items-center gap-3 mb-2">
+        <h2 className="text-xs font-semibold tracking-[0.18em] uppercase text-gray-500">
+          {label}
+        </h2>
+        <span className="flex-1 h-px bg-white/10" />
+        {copyOptions?.length > 0 && (
+          <CopyDropdown options={copyOptions} size={13} className="h-7" />
+        )}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+// ─── URL Section ──────────────────────────────────────────────────────────────
+function UrlSection({ parsed, onQueryChange, onCurlUpdate }) {
+  const [showParams, setShowParams] = useState(false);
+  const { url, method, queryParams = [], baseUrl } = parsed;
+
+  const buildUrl = (params) => {
+    if (!params.length) return baseUrl;
+    const qs = params
+      .filter((p) => p.enabled)
+      .map((p) => `${encodeURIComponent(p.key)}=${encodeURIComponent(p.value)}`)
+      .join("&");
+    return qs ? `${baseUrl}?${qs}` : baseUrl;
+  };
+
+  const handleParamToggle = (idx) => {
+    const next = queryParams.map((p, i) =>
+      i === idx ? { ...p, enabled: !p.enabled } : p,
+    );
+    const newUrl = buildUrl(next);
+    onQueryChange(next, newUrl);
+    onCurlUpdate?.({ ...parsed, queryParams: next, url: newUrl });
+  };
+
+  const handleParamEdit = (idx, field, val) => {
+    const next = queryParams.map((p, i) =>
+      i === idx ? { ...p, [field]: val } : p,
+    );
+    const newUrl = buildUrl(next);
+    onQueryChange(next, newUrl);
+    onCurlUpdate?.({ ...parsed, queryParams: next, url: newUrl });
+  };
+
+  const handleParamAdd = () => {
+    const next = [...queryParams, { key: "", value: "", enabled: true }];
+    const newUrl = buildUrl(next);
+    onQueryChange(next, newUrl);
+    onCurlUpdate?.({ ...parsed, queryParams: next, url: newUrl });
+  };
+
+  const handleParamDelete = (idx) => {
+    const next = queryParams.filter((_, i) => i !== idx);
+    const newUrl = buildUrl(next);
+    onQueryChange(next, newUrl);
+    onCurlUpdate?.({ ...parsed, queryParams: next, url: newUrl });
+  };
+
+  const copyOptions = [
+    { label: "Copy URL", getText: () => url },
+    {
+      label: "Copy path only",
+      getText: () => {
+        try {
+          return new URL(url).pathname;
+        } catch (_) {
+          return url;
+        }
+      },
+    },
+    { label: "Copy as curl (GET)", getText: () => `curl '${url}'` },
+    {
+      label: "Copy origin",
+      getText: () => {
+        try {
+          return new URL(url).origin;
+        } catch (_) {
+          return url;
+        }
+      },
+    },
+  ];
+
+  return (
+    <Section label="URL" copyOptions={copyOptions}>
+      <div className="bg-white/[0.03] border border-white/10 rounded-xl p-4 font-mono text-sm break-all">
+        <div className="flex items-center gap-2 flex-wrap">
+          <MethodBadge method={method} />
+          <span
+            className="flex-1"
+            dangerouslySetInnerHTML={{ __html: highlightUrl(url) }}
+          />
+        </div>
+
+        {queryParams.length > 0 && (
+          <button
+            onClick={() => setShowParams((v) => !v)}
+            className="mt-3 flex items-center gap-1 text-xs text-gray-500 hover:text-gray-300 transition"
+          >
+            {showParams ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+            {queryParams.length} query param
+            {queryParams.length !== 1 ? "s" : ""}
+          </button>
+        )}
+
+        {showParams && (
+          <div className="mt-3 space-y-2">
+            {queryParams.map((p, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={p.enabled}
+                  onChange={() => handleParamToggle(i)}
+                  className="accent-white"
+                />
+                <input
+                  value={p.key}
+                  onChange={(e) => handleParamEdit(i, "key", e.target.value)}
+                  placeholder="key"
+                  className="w-1/3 bg-white/5 border border-white/10 rounded px-2 py-1 text-xs font-mono text-green-400 focus:outline-none focus:border-white/30"
+                />
+                <span className="text-gray-600">=</span>
+                <input
+                  value={p.value}
+                  onChange={(e) => handleParamEdit(i, "value", e.target.value)}
+                  placeholder="value"
+                  className="flex-1 bg-white/5 border border-white/10 rounded px-2 py-1 text-xs font-mono text-red-300 focus:outline-none focus:border-white/30"
+                />
+                <button
+                  onClick={() => handleParamDelete(i)}
+                  className="text-gray-600 hover:text-red-400 transition"
+                >
+                  <Trash2 size={12} />
+                </button>
+              </div>
+            ))}
+            <button
+              onClick={handleParamAdd}
+              className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-300 mt-1 transition"
+            >
+              <Plus size={12} /> Add param
+            </button>
+          </div>
+        )}
+      </div>
+    </Section>
+  );
+}
+
+// ─── Headers Section ──────────────────────────────────────────────────────────
+function HeadersSection({ headers }) {
+  const [search, setSearch] = useState("");
+  const [sortAlpha, setSortAlpha] = useState(false);
+  const [maskSensitive, setMaskSensitive] = useState(false);
+
+  const filtered = headers.filter((h) =>
+    h.toLowerCase().includes(search.toLowerCase()),
+  );
+  const sorted = sortAlpha
+    ? [...filtered].sort((a, b) => a.localeCompare(b))
+    : filtered;
+
+  // Build header object for JSON copy
+  const headersToObj = () => {
+    const obj = {};
+    for (const h of headers) {
+      const idx = h.indexOf(":");
+      if (idx !== -1) obj[h.slice(0, idx).trim()] = h.slice(idx + 1).trim();
+    }
+    return obj;
+  };
+
+  const copyOptions = [
+    { label: "Copy as text", getText: () => headers.join("\n") },
+    {
+      label: "Copy as JSON",
+      getText: () => JSON.stringify(headersToObj(), null, 2),
+    },
+    {
+      label: "Copy as -H flags",
+      getText: () => headers.map((h) => `-H '${h}'`).join(" \\\n"),
+    },
+    {
+      label: "Copy as .env",
+      getText: () =>
+        headers
+          .map((h) => {
+            const idx = h.indexOf(":");
+            if (idx === -1) return "";
+            const k = h.slice(0, idx).trim().toUpperCase().replace(/-/g, "_");
+            const v = h.slice(idx + 1).trim();
+            return `${k}=${v}`;
+          })
+          .filter(Boolean)
+          .join("\n"),
+    },
+  ];
+
+  return (
+    <Section label="Headers" copyOptions={copyOptions}>
+      <div className="flex items-center gap-2 mb-2">
+        <div className="relative flex-1">
+          <Search
+            size={12}
+            className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500"
+          />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Filter headers…"
+            className="w-full pl-7 pr-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-xs text-gray-300 placeholder-gray-600 focus:outline-none focus:border-white/30"
+          />
+        </div>
+        <button
+          onClick={() => setSortAlpha((v) => !v)}
+          title={sortAlpha ? "Original order" : "Sort A–Z"}
+          className={`p-1.5 rounded-lg border transition ${sortAlpha ? "border-white/30 bg-white/10 text-white" : "border-white/10 bg-white/5 text-gray-500 hover:text-white"}`}
+        >
+          <ArrowUpDown size={12} />
+        </button>
+        <button
+          onClick={() => setMaskSensitive((v) => !v)}
+          title={
+            maskSensitive ? "Show sensitive headers" : "Mask sensitive headers"
+          }
+          className={`p-1.5 rounded-lg border transition ${maskSensitive ? "border-white/30 bg-white/10 text-white" : "border-white/10 bg-white/5 text-gray-500 hover:text-white"}`}
+        >
+          {maskSensitive ? <Eye size={12} /> : <EyeOff size={12} />}
+        </button>
+      </div>
+
+      <div className="bg-white/[0.03] border border-white/10 rounded-xl p-4 font-mono text-sm">
+        {sorted.length === 0 ? (
+          <p className="text-gray-600 text-xs">
+            {search ? "No headers match your filter." : "No headers."}
+          </p>
+        ) : (
+          <div
+            className="whitespace-pre-wrap leading-6"
+            dangerouslySetInnerHTML={{
+              __html: highlightHeaders(sorted, maskSensitive),
+            }}
+          />
+        )}
+      </div>
+
+      {search && filtered.length !== headers.length && (
+        <p className="text-xs text-gray-600 mt-1">
+          {filtered.length} of {headers.length} headers
+        </p>
+      )}
+    </Section>
+  );
+}
+
+// ─── Payload Section ──────────────────────────────────────────────────────────
+function PayloadSection({ payload, bodyIsJson }) {
+  const [pretty, setPretty] = useState(true);
+
+  const prettyText = () => {
+    try {
+      return JSON.stringify(JSON.parse(payload), null, 2);
+    } catch (_) {
+      return payload;
+    }
+  };
+  const compactText = () => {
+    try {
+      return JSON.stringify(JSON.parse(payload));
+    } catch (_) {
+      return payload;
+    }
+  };
+  const formEncoded = () => {
+    try {
+      const obj = JSON.parse(payload);
+      return Object.entries(obj)
+        .map(
+          ([k, v]) =>
+            `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`,
+        )
+        .join("&");
+    } catch (_) {
+      return payload;
+    }
+  };
+
+  const displayText = bodyIsJson && pretty ? prettyText() : payload;
+
+  const copyOptions = bodyIsJson
+    ? [
+        { label: "Copy pretty JSON", getText: prettyText },
+        { label: "Copy compact JSON", getText: compactText },
+        { label: "Copy form-encoded", getText: formEncoded },
+      ]
+    : [{ label: "Copy payload", getText: () => payload }];
+
+  return (
+    <Section label="Payload" copyOptions={copyOptions}>
+      {bodyIsJson && (
+        <div className="flex items-center gap-2 mb-2">
+          <button
+            onClick={() => setPretty(true)}
+            className={`text-xs px-3 py-1 rounded-lg border transition ${pretty ? "border-white/30 bg-white/10 text-white" : "border-white/10 bg-white/5 text-gray-500 hover:text-white"}`}
+          >
+            Pretty
+          </button>
+          <button
+            onClick={() => setPretty(false)}
+            className={`text-xs px-3 py-1 rounded-lg border transition ${!pretty ? "border-white/30 bg-white/10 text-white" : "border-white/10 bg-white/5 text-gray-500 hover:text-white"}`}
+          >
+            Compact
+          </button>
+        </div>
+      )}
+
+      <div className="bg-white/[0.03] border border-white/10 rounded-xl p-4 max-h-72 overflow-y-auto font-mono text-xs">
+        {payload ? (
+          bodyIsJson && pretty ? (
+            <pre
+              className="whitespace-pre-wrap break-all leading-5"
+              dangerouslySetInnerHTML={{ __html: highlightJson(payload) }}
+            />
+          ) : (
+            <pre className="whitespace-pre-wrap break-all leading-5 text-gray-300">
+              {displayText}
+            </pre>
+          )
+        ) : (
+          <p className="text-gray-600">No payload.</p>
+        )}
+      </div>
+    </Section>
+  );
+}
+
+// ─── Master copy-as-curl bar ──────────────────────────────────────────────────
+function MasterCurlBar({ parsed }) {
+  const curlOptions = [
+    { label: "Copy full curl command", getText: () => reconstructCurl(parsed) },
+    { label: "Copy URL only", getText: () => parsed.url },
+    {
+      label: "Copy method + URL",
+      getText: () => `${parsed.method} ${parsed.url}`,
+    },
+  ];
+  return (
+    <div className="flex items-center justify-between px-4 py-2.5 rounded-xl border border-white/10 bg-white/[0.02]">
+      <span className="text-xs text-gray-500 font-mono truncate mr-3">
+        <span className="text-gray-600">{parsed.method}</span> {parsed.url}
+      </span>
+      <CopyDropdown options={curlOptions} size={13} className="h-7 shrink-0" />
+    </div>
+  );
+}
+
+// ─── Main OutputPanel ─────────────────────────────────────────────────────────
+export default function OutputPanel({ parsed, onQueryChange, onCurlUpdate }) {
+  if (!parsed) return null;
+
+  return (
+    <div className="space-y-7">
+      <MasterCurlBar parsed={parsed} />
+      <UrlSection
+        parsed={parsed}
+        onQueryChange={onQueryChange}
+        onCurlUpdate={onCurlUpdate}
+      />
+      <HeadersSection headers={parsed.headers} />
+      <JwtPanel headers={parsed.headers} />
+      {(parsed.payload || parsed.bodyIsJson) && (
+        <PayloadSection
+          payload={parsed.payload}
+          bodyIsJson={parsed.bodyIsJson}
+        />
+      )}
+    </div>
+  );
+}
