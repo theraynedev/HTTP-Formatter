@@ -1,5 +1,5 @@
 import { useState, useLayoutEffect, useCallback } from "react";
-import { Sun, Moon, Monitor, Terminal } from "lucide-react";
+import { Sun, Moon, Terminal } from "lucide-react";
 
 import InputPanel from "./components/InputPanel.jsx";
 import OutputPanel from "./components/OutputPanel.jsx";
@@ -26,19 +26,9 @@ function useTheme() {
   const [theme, setThemeState] = useState(getTheme);
 
   useLayoutEffect(() => {
-    const apply = (t) => {
-      const prefersDark = window.matchMedia(
-        "(prefers-color-scheme: dark)",
-      ).matches;
-      const isDark = t === "dark" || (t === "system" && prefersDark);
-      document.documentElement.classList.toggle("dark", isDark);
-      document.documentElement.classList.toggle("light", !isDark);
-    };
-    apply(theme);
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const handler = () => apply(theme);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
+    const isDark = theme === "dark";
+    document.documentElement.classList.toggle("dark", isDark);
+    document.documentElement.classList.toggle("light", !isDark);
   }, [theme]);
 
   const change = (t) => {
@@ -202,15 +192,13 @@ export default function App() {
   };
 
   // ─── Theme icon ──────────────────────────────────────────────────────────────
-  const ThemeIcon = theme === "dark" ? Moon : theme === "light" ? Sun : Monitor;
-  const themeOptions = ["system", "dark", "light"];
-
   const cycleTheme = () => {
-    const next =
-      themeOptions[(themeOptions.indexOf(theme) + 1) % themeOptions.length];
+    const next = theme === "dark" ? "light" : "dark";
     changeTheme(next);
     addToast(`Theme: ${next}`, "info", 1800);
   };
+  const ThemeIcon = theme === "dark" ? Moon : Sun;
+  const nextTheme = theme === "dark" ? "light" : "dark";
 
   return (
     <div className="min-h-screen bg-black text-white antialiased selection:bg-white/20 transition-colors">
@@ -225,10 +213,10 @@ export default function App() {
           <div className="text-center flex-1">
             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/15 bg-white/5 text-[11px] font-mono tracking-[0.2em] uppercase text-gray-400 mb-4">
               <Terminal size={10} />
-              cURL Tools
+              HTTP Tools
             </span>
             <h1 className="text-4xl font-bold tracking-tight">
-              cURL <span className="text-gray-500">Formatter</span>
+              HTTP <span className="text-gray-500">Formatter</span>
             </h1>
             <p className="text-gray-500 text-sm mt-2">
               Paste a request, beautify it, and copy each part.
@@ -239,7 +227,8 @@ export default function App() {
           <button
             onClick={cycleTheme}
             className="mt-1 p-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition"
-            title={`Theme: ${theme} — click to cycle`}
+            title={`Switch to ${nextTheme} mode`}
+            aria-label={`Switch to ${nextTheme} mode`}
           >
             <ThemeIcon size={16} />
           </button>

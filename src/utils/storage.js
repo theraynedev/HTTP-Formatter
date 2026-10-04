@@ -99,7 +99,8 @@ export function setCookiePref(val) {
 }
 
 export function getTheme() {
-  return localStorage.getItem(THEME_KEY) ?? "system";
+  const theme = localStorage.getItem(THEME_KEY);
+  return theme === "light" ? "light" : "dark";
 }
 
 export function setTheme(val) {
