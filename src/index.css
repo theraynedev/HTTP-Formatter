@@ -1,143 +1,308 @@
+/* ─── Inter + JetBrains Mono (self-hosted via @fontsource) ────────────────── */
+@import "@fontsource/inter/latin-400.css";
+@import "@fontsource/inter/latin-500.css";
+@import "@fontsource/inter/latin-600.css";
+@import "@fontsource/inter/latin-ext-400.css";
+@import "@fontsource/inter/latin-ext-500.css";
+@import "@fontsource/inter/latin-ext-600.css";
+
+@import "@fontsource/jetbrains-mono/latin-400.css";
+@import "@fontsource/jetbrains-mono/latin-500.css";
+@import "@fontsource/jetbrains-mono/latin-600.css";
+@import "@fontsource/jetbrains-mono/latin-ext-400.css";
+@import "@fontsource/jetbrains-mono/latin-ext-500.css";
+@import "@fontsource/jetbrains-mono/latin-ext-600.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-* {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-*::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-}
+/* ═══════════════════════════════════════════════════════════════════════════
+   VIOLET ISSUE — design tokens
+   ---------------------------------------------------------------------------
+   Every colour is a CSS custom property holding space-separated RGB channels,
+   so Tailwind's `<alpha-value>` keeps working: `bg-surface/50`, `border-line`,
+   `text-fg-muted`, `bg-accent/10`.
 
-/* JSON syntax highlighting */
-.json-key    { color: #93c5fd; }
-.json-string { color: #86efac; }
-.json-number { color: #fda4af; }
-.json-bool   { color: #f9a8d4; }
-.json-null   { color: #94a3b8; }
+   Dark is the default (matches `darkMode: "class"`); `html.light` overrides.
+   Components must NEVER hardcode a colour — that is what broke light mode.
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root,
+html.dark {
+  color-scheme: dark;
 
-/* URL syntax highlighting */
-.url-scheme  { color: #94a3b8; }
-.url-host    { color: #f8fafc; }
-.url-path    { color: #93c5fd; }
-.url-query-key   { color: #86efac; }
-.url-query-sep   { color: #94a3b8; }
-.url-query-val   { color: #fda4af; }
+  /* Elevation — layered backgrounds, never shadows */
+  --c-canvas: 16 16 20; /* #101014 · level 0 */
+  --c-surface: 27 27 37; /* #1B1B25 · level 1 */
+  --c-surface-raised: 31 31 46; /* #1F1F2E · level 2 */
+  --c-surface-overlay: 37 37 54; /* #252536 · level 3 */
 
-/* Header highlighting */
-.hdr-name    { color: #93c5fd; }
-.hdr-sep     { color: #475569; }
-.hdr-value   { color: #e2e8f0; }
-.hdr-sensitive { color: #fca5a5; }
+  /* Borders */
+  --c-line: 44 44 58; /* #2C2C3A */
+  --c-line-strong: 59 59 78; /* #3B3B4E */
 
-/* Light mode overrides */
-.light .json-key    { color: #1d4ed8; }
-.light .json-string { color: #15803d; }
-.light .json-number { color: #be185d; }
-.light .json-bool   { color: #7c3aed; }
-.light .json-null   { color: #64748b; }
-.light .url-scheme  { color: #64748b; }
-.light .url-host    { color: #0f172a; }
-.light .url-path    { color: #1d4ed8; }
-.light .url-query-key   { color: #15803d; }
-.light .url-query-sep   { color: #64748b; }
-.light .url-query-val   { color: #be185d; }
-.light .hdr-name    { color: #1d4ed8; }
-.light .hdr-sep     { color: #94a3b8; }
-.light .hdr-value   { color: #0f172a; }
-.light .hdr-sensitive { color: #dc2626; }
+  /* Text — three steps, that is all the system allows */
+  --c-fg: 241 241 244; /* #F1F1F4 */
+  --c-fg-muted: 165 170 180;
+  --c-fg-subtle: 138 143 152; /* #8A8F98 */
 
-html {
-  background: #000;
+  /* Accent + functional.
+     `accent` is the fill (white text sits on it, so it must stay dark).
+     `accent-text` is the readable accent for text/icons on a surface — the two
+     roles have opposite contrast requirements and cannot share one value. */
+  --c-accent: 94 106 210; /* #5E6AD2 */
+  --c-accent-hover: 78 91 191; /* #4E5BBF */
+  --c-accent-text: 139 147 232; /* #8B93E8 — 6.7:1 on the dark canvas */
+  --c-info: 91 157 249;
+  --c-success: 61 214 140; /* #3DD68C */
+  --c-warning: 240 192 0; /* #F0C000 */
+  --c-danger: 235 87 87; /* #EB5757 */
+  --c-mutation: 247 149 61; /* #F7953D */
+
+  /* Syntax highlighting */
+  --c-syn-key: 139 147 232;
+  --c-syn-string: 127 209 166;
+  --c-syn-number: 232 148 139;
+  --c-syn-bool: 201 155 232;
+  --c-syn-null: 138 143 152;
+
+  /* URL / header highlighting */
+  --c-url-scheme: 138 143 152;
+  --c-url-host: 241 241 244;
+  --c-url-path: 139 147 232;
+  --c-url-qkey: 127 209 166;
+  --c-url-qsep: 138 143 152;
+  --c-url-qval: 232 148 139;
+  --c-hdr-name: 139 147 232;
+  --c-hdr-sep: 126 132 144; /* #7E8490 — 4.55:1 on the dark surface */
+  --c-hdr-value: 216 218 224;
+  --c-hdr-sensitive: 235 138 138;
+
+  /* Scrollbars */
+  --c-scroll-thumb: 255 255 255 / 0.12;
+  --c-scroll-thumb-hover: 255 255 255 / 0.22;
+  --c-scroll-thumb-light: 0 0 0 / 0.15;
+
+  /* Accent glow behind focused / selected elements */
+  --c-glow: 94 106 210;
 }
 
 html.light {
   color-scheme: light;
-  background: #f8fafc;
+
+  /* Elevation — inverts: cards are white on a tinted canvas */
+  --c-canvas: 247 247 249; /* #F7F7F9 */
+  --c-surface: 255 255 255; /* #FFFFFF */
+  --c-surface-raised: 241 241 245; /* #F1F1F5 */
+  --c-surface-overlay: 255 255 255; /* #FFFFFF */
+
+  --c-line: 227 227 233; /* #E3E3E9 */
+  --c-line-strong: 205 205 214; /* #CDCDD6 */
+
+  --c-fg: 22 22 29; /* #16161D */
+  --c-fg-muted: 92 96 104;
+  --c-fg-subtle: 102 107 115; /* #666B73 — ≥4.7:1 on canvas and raised */
+
+  /* Same violet accent; darkened one step so it passes contrast on white */
+  --c-accent: 79 90 196; /* #4F5AC4 */
+  --c-accent-hover: 62 72 168;
+  --c-accent-text: 79 90 196; /* already 5.8:1 on white */
+  --c-info: 37 99 235; /* #2563EB */
+  --c-success: 22 121 76; /* #16794C */
+  --c-warning: 138 101 0; /* #8A6500 */
+  --c-danger: 201 59 59; /* #C93B3B */
+  --c-mutation: 180 83 9; /* #B45309 */
+
+  --c-syn-key: 75 84 184;
+  --c-syn-string: 22 121 76;
+  --c-syn-number: 192 57 43;
+  --c-syn-bool: 122 63 168;
+  --c-syn-null: 107 112 120;
+
+  --c-url-scheme: 102 107 115;
+  --c-url-host: 22 22 29;
+  --c-url-path: 75 84 184;
+  --c-url-qkey: 22 121 76;
+  --c-url-qsep: 102 107 115;
+  --c-url-qval: 192 57 43;
+  --c-hdr-name: 75 84 184;
+  --c-hdr-sep: 110 115 124; /* #6E737C — 4.77:1 on white */
+  --c-hdr-value: 22 22 29;
+  --c-hdr-sensitive: 192 57 43;
+
+  --c-scroll-thumb: 0 0 0 / 0.15;
+  --c-scroll-thumb-hover: 0 0 0 / 0.28;
+
+  --c-glow: 94 106 210;
 }
 
-html.light body {
-  background: #f8fafc;
+/* ═══════════════════════════════════════════════════════════════════════════
+   TYPOGRAPHY — Inter 400/500/600 + JetBrains Mono, per the design spec
+   ═══════════════════════════════════════════════════════════════════════════ */
+@layer base {
+  html {
+    background: rgb(var(--c-canvas));
+  }
+
+  body {
+    background: rgb(var(--c-canvas));
+    color: rgb(var(--c-fg));
+    font-weight: 400;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Display headings: 600 with tight tracking for a dense appearance */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: 600;
+    letter-spacing: -0.03em;
+  }
+
+  /* Controls read 500 — the spec's button/label weight, not bold */
+  button,
+  [role="button"],
+  [role="tab"],
+  label,
+  th,
+  summary {
+    font-weight: 500;
+  }
+
+  /* Inputs inherit the body face at 400 */
+  input,
+  textarea,
+  select {
+    font-weight: 400;
+  }
+
+  ::selection {
+    background: rgb(var(--c-accent) / 0.28);
+    color: rgb(var(--c-fg));
+  }
 }
 
-.light #root > [class~="bg-black"] {
-  background-color: #f8fafc;
+/* ─── Full-height app shell ───────────────────────────────────────────────── */
+/* The viewport is the only fixed box in the app. Nothing scrolls at page
+   level — every scrollable region is an inner container (`.pane-scroll`), so
+   the nav and each page's chrome stay put while its content moves. `100dvh`
+   keeps the shell correct when mobile browser chrome slides in and out. */
+html {
+  height: 100%;
+  overflow: hidden;
+}
+body,
+#root {
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none; /* no rubber-band / scroll-chaining on the shell */
 }
 
-.light [class~="accent-white"] {
-  accent-color: #0f172a;
+/* ─── Thin styled scrollbars for scroll panes ──────────────────────────────
+   These live in the `components` layer on purpose. Declared at the top level
+   they are emitted *after* `@tailwind utilities` and, at equal specificity,
+   silently beat any `overflow-x-auto` / `overflow-auto` on the same element —
+   which is how an inner box that explicitly asked for horizontal scrolling
+   ended up clipped instead. Inside `components` the utilities layer wins, so a
+   pane keeps its styled scrollbars unless it opts out explicitly. */
+@layer components {
+  .pane-scroll {
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--c-scroll-thumb)) transparent;
+  }
+  .pane-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+  .pane-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .pane-scroll::-webkit-scrollbar-thumb {
+    background: rgb(var(--c-scroll-thumb));
+    border-radius: 99px;
+  }
+  .pane-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--c-scroll-thumb-hover));
+  }
+
+  .pane-scroll-x {
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--c-scroll-thumb)) transparent;
+  }
+  .pane-scroll-x::-webkit-scrollbar {
+    height: 6px;
+  }
+  .pane-scroll-x::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .pane-scroll-x::-webkit-scrollbar-thumb {
+    background: rgb(var(--c-scroll-thumb));
+    border-radius: 99px;
+  }
 }
 
-.light [class~="text-white"]:not([class~="bg-red-500"]),
-.light [class*="text-white/"] {
-  color: #0f172a;
+/* ─── Syntax highlighting (token-driven, so both themes stay legible) ────── */
+.json-key {
+  color: rgb(var(--c-syn-key));
+}
+.json-string {
+  color: rgb(var(--c-syn-string));
+}
+.json-number {
+  color: rgb(var(--c-syn-number));
+}
+.json-bool {
+  color: rgb(var(--c-syn-bool));
+}
+.json-null {
+  color: rgb(var(--c-syn-null));
 }
 
-.light [class~="hover:text-white"]:hover { color: #0f172a; }
-.light [class~="text-gray-100"] { color: #0f172a; }
-.light [class~="text-gray-200"] { color: #1e293b; }
-.light [class~="text-gray-300"] { color: #334155; }
-.light [class~="text-gray-400"] { color: #475569; }
-.light [class~="text-gray-500"] { color: #64748b; }
-.light [class~="text-gray-600"] { color: #64748b; }
-.light [class~="text-gray-700"] { color: #475569; }
-.light [class~="text-gray-900"] { color: #0f172a; }
-
-.light [class*="bg-white/"] {
-  background-color: rgb(15 23 42 / 0.04);
+.url-scheme {
+  color: rgb(var(--c-url-scheme));
+}
+.url-host {
+  color: rgb(var(--c-url-host));
+}
+.url-path {
+  color: rgb(var(--c-url-path));
+}
+.url-query-key {
+  color: rgb(var(--c-url-qkey));
+}
+.url-query-sep {
+  color: rgb(var(--c-url-qsep));
+}
+.url-query-val {
+  color: rgb(var(--c-url-qval));
 }
 
-.light [class~="bg-white/10"],
-.light [class~="bg-white/[0.1]"] {
-  background-color: rgb(15 23 42 / 0.06);
+.hdr-name {
+  color: rgb(var(--c-hdr-name));
+}
+.hdr-sep {
+  color: rgb(var(--c-hdr-sep));
+}
+.hdr-value {
+  color: rgb(var(--c-hdr-value));
+}
+.hdr-sensitive {
+  color: rgb(var(--c-hdr-sensitive));
 }
 
-.light [class~="bg-white/15"],
-.light [class~="bg-white/20"] {
-  background-color: rgb(15 23 42 / 0.08);
-}
-
-.light [class~="bg-white/30"],
-.light [class~="bg-white/40"] {
-  background-color: rgb(15 23 42 / 0.12);
-}
-
-.light [class~="hover:bg-white/10"]:hover {
-  background-color: rgb(15 23 42 / 0.08);
-}
-
-.light [class~="border-white"],
-.light [class*="border-white/"] {
-  border-color: rgb(15 23 42 / 0.12);
-}
-
-.light [class~="hover:border-white/20"]:hover {
-  border-color: rgb(15 23 42 / 0.24);
-}
-
-.light [class~="bg-white"][class~="text-black"] {
-  background-color: #0f172a;
-  color: #fff;
-}
-
-.light [class~="bg-[#111]"] {
-  background-color: #fff;
-  border-color: #e2e8f0;
-}
-
-.light [class~="text-emerald-300"] { color: #047857; }
-.light [class~="text-emerald-400"] { color: #047857; }
-.light [class~="text-green-400"] { color: #15803d; }
-.light [class~="text-blue-400"] { color: #1d4ed8; }
-.light [class~="text-violet-400"] { color: #6d28d9; }
-.light [class~="text-pink-400"] { color: #be185d; }
-.light [class~="text-red-300"],
-.light [class~="text-red-400"] { color: #b91c1c; }
-.light [class~="text-amber-400"] { color: #b45309; }
-
-.light ::selection {
-  color: #0f172a;
-  background: rgb(59 130 246 / 0.2);
+/* ─── Micro-label: the one uppercase tracked style in the system ─────────── */
+.micro-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgb(var(--c-fg-subtle));
 }

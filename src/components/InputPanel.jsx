@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Zap, Trash2, Cookie, Upload, FileText } from "lucide-react";
+import { Bolt, Trash, Cookie, Document, Upload } from "reicon-react";
 
 export default function InputPanel({
   value,
@@ -10,7 +10,6 @@ export default function InputPanel({
   includeCookie,
   onToggleCookie,
 }) {
-  const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
   const [dragging, setDragging] = useState(false);
 
@@ -28,12 +27,9 @@ export default function InputPanel({
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (ev) => {
-      const content = ev.target.result;
-      if (file.name.endsWith(".har")) {
-        onHarDrop(content);
-      } else {
-        onChange(content);
-      }
+      file.name.endsWith(".har")
+        ? onHarDrop(ev.target.result)
+        : onChange(ev.target.result);
     };
     reader.readAsText(file);
   };
@@ -43,25 +39,20 @@ export default function InputPanel({
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (ev) => {
-      const content = ev.target.result;
-      if (file.name.endsWith(".har")) {
-        onHarDrop(content);
-      } else {
-        onChange(content);
-      }
+      file.name.endsWith(".har")
+        ? onHarDrop(ev.target.result)
+        : onChange(ev.target.result);
     };
     reader.readAsText(file);
     e.target.value = "";
   };
 
   return (
-    <div className="space-y-3">
-      {/* Textarea */}
+    <div className="flex flex-col h-full gap-3">
+      {/* Textarea — fills all available vertical space */}
       <div
-        className={`relative rounded-xl border transition-colors ${
-          dragging
-            ? "border-white/40 bg-white/10"
-            : "border-white/10 bg-white/[0.03]"
+        className={`relative flex-1 rounded-card border transition-colors ${
+          dragging ? "border-line bg-surface-raised" : "border-line bg-surface"
         }`}
         onDragOver={(e) => {
           e.preventDefault();
@@ -71,68 +62,81 @@ export default function InputPanel({
         onDrop={handleDrop}
       >
         {dragging && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center z-10 rounded-xl bg-white/5 pointer-events-none">
-            <Upload size={24} className="text-white/60 mb-2" />
-            <p className="text-sm text-white/60">Drop .txt or .har file</p>
+          <div className="absolute inset-0 flex flex-col items-center justify-center z-10 rounded-card bg-surface-raised pointer-events-none">
+            <Upload size={22} className="text-fg/50 mb-2" />
+            <p className="text-sm text-fg/50">Drop .txt or .har file</p>
           </div>
         )}
         <textarea
-          ref={textareaRef}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
-          rows={9}
-          className="w-full bg-transparent rounded-xl p-4 font-mono text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-white/20 resize-y transition"
-          placeholder="Paste a curl, PowerShell, or fetch command here… or drop a .txt/.har file"
+          className="w-full h-full bg-transparent rounded-card p-4 font-mono text-sm text-fg placeholder-fg-subtle focus:outline-none focus:ring-2 focus:ring-accent/15 resize-none transition leading-relaxed"
+          placeholder={
+            "Paste curl, PowerShell, or fetch…\nor drop a .txt / .har file\n\n⌘↵  to format"
+          }
           spellCheck={false}
           autoComplete="off"
         />
       </div>
 
-      {/* Controls */}
-      <div className="flex gap-3">
+      {/* Action bar */}
+      <div className="flex gap-2 shrink-0">
         <button
           onClick={onFormat}
-          className="flex-1 flex items-center justify-center gap-2 bg-white hover:bg-gray-100 text-black font-semibold py-3 rounded-xl transition active:scale-[0.99]"
+          className="flex-1 flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover text-white text-sm font-medium py-2.5 rounded-card transition active:scale-[0.99]"
         >
-          <Zap size={16} />
-          Format Request
+          <Bolt size={14} />
+          Format
         </button>
 
-        {/* Cookie toggle */}
+        {/* Cookie toggle — the knob must contrast with the track. It used to be
+            `bg-accent` on a `bg-accent` track, which rendered as a solid violet
+            blob with no visible switch when on. */}
         <button
           onClick={onToggleCookie}
+          role="switch"
+          aria-checked={includeCookie}
           title={
             includeCookie ? "Cookie header included" : "Cookie header excluded"
           }
-          className="flex items-center gap-2.5 px-4 bg-white/5 border border-white/10 hover:bg-white/10 text-gray-300 font-medium py-3 rounded-xl transition"
+          className="flex items-center gap-2 px-3 bg-surface-raised border border-line hover:bg-surface-overlay text-fg py-2.5 rounded-card transition"
         >
           <span
-            className={`relative w-9 h-5 rounded-full transition-colors ${includeCookie ? "bg-white" : "bg-white/20"}`}
+            className={`relative w-8 h-4 rounded-full transition-colors shrink-0 ${
+              includeCookie
+                ? "bg-accent"
+                : "bg-surface-overlay border border-line"
+            }`}
           >
             <span
-              className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full transition-transform ${includeCookie ? "bg-black translate-x-4" : "bg-white"}`}
+              className={`absolute top-0.5 left-0.5 w-3 h-3 rounded-full transition-transform ${
+                includeCookie ? "bg-white translate-x-4" : "bg-fg-subtle"
+              }`}
             />
           </span>
-          <Cookie size={14} />
+          <Cookie
+            size={13}
+            className={includeCookie ? "text-fg" : "text-fg-subtle"}
+          />
         </button>
 
         {/* File import */}
         <button
           onClick={() => fileInputRef.current?.click()}
-          title="Import .txt or .har file"
-          className="px-4 bg-white/5 border border-white/10 hover:bg-white/10 text-gray-300 py-3 rounded-xl transition"
+          title="Import .txt or .har"
+          className="px-3 bg-surface-raised border border-line hover:bg-surface-overlay text-fg py-2.5 rounded-card transition"
         >
-          <FileText size={16} />
+          <Document size={14} />
         </button>
 
         {/* Clear */}
         <button
           onClick={onClear}
-          title="Clear input"
-          className="px-4 bg-white/5 border border-white/10 hover:bg-white/10 text-gray-300 py-3 rounded-xl transition"
+          title="Clear"
+          className="px-3 bg-surface-raised border border-line hover:bg-surface-overlay text-fg hover:text-danger py-2.5 rounded-card transition"
         >
-          <Trash2 size={16} />
+          <Trash size={14} />
         </button>
       </div>
 

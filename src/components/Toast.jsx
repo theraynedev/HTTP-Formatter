@@ -1,20 +1,20 @@
 import { useEffect, useState } from 'react'
-import { X, CheckCircle, AlertCircle, Info } from 'lucide-react'
+import { Xmark, CheckCircle, AlertCircle, InfoCircle } from 'reicon-react'
 
 const ICONS = {
   success: CheckCircle,
   error: AlertCircle,
-  info: Info,
+  info: InfoCircle,
 }
 
 const COLORS = {
-  success: 'border-green-500/30 bg-green-500/10 text-green-400',
-  error: 'border-red-500/30 bg-red-500/10 text-red-400',
-  info: 'border-white/20 bg-white/5 text-gray-300',
+  success: 'border-success/30 bg-success/10 text-success',
+  error: 'border-danger/30 bg-danger/10 text-danger',
+  info: 'border-line bg-surface-raised text-fg',
 }
 
 function ToastItem({ toast, onRemove }) {
-  const Icon = ICONS[toast.type] ?? Info
+  const Icon = ICONS[toast.type] ?? InfoCircle
 
   useEffect(() => {
     const t = setTimeout(() => onRemove(toast.id), toast.duration ?? 3500)
@@ -22,12 +22,12 @@ function ToastItem({ toast, onRemove }) {
   }, [toast.id, toast.duration, onRemove])
 
   return (
-    <div className={`flex items-start gap-3 px-4 py-3 rounded-xl border backdrop-blur-sm shadow-lg text-sm animate-in ${COLORS[toast.type]}`}
+    <div className={`flex items-start gap-3 px-4 py-3 rounded-card border backdrop-blur-sm shadow-pop text-sm animate-in ${COLORS[toast.type]}`}
       style={{ animation: 'slideIn 0.2s ease' }}>
       <Icon size={16} className="mt-0.5 shrink-0" />
       <span className="flex-1">{toast.message}</span>
       <button onClick={() => onRemove(toast.id)} className="shrink-0 opacity-60 hover:opacity-100 transition">
-        <X size={14} />
+        <Xmark size={14} />
       </button>
     </div>
   )

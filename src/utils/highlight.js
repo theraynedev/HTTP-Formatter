@@ -12,9 +12,12 @@ function esc(s) {
 
 // ─── JSON ─────────────────────────────────────────────────────────────────────
 
-export function highlightJson(json) {
+// `indent` defaults to 2 (pretty). Pass 0 to keep the JSON on one line — the
+// HAR Analyzer's Compact toggle needs the highlighted output to stay collapsed,
+// and the stringify here used to force pretty-printing regardless of input.
+export function highlightJson(json, indent = 2) {
   try {
-    const pretty = JSON.stringify(JSON.parse(json), null, 2)
+    const pretty = JSON.stringify(JSON.parse(json), null, indent)
     return pretty.replace(
       /("(?:\\.|[^"\\])*")(\s*:)?|(\btrue\b|\bfalse\b)|\bnull\b|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g,
       (match, str, colon, bool, num) => {
@@ -64,19 +67,26 @@ export function highlightUrl(url) {
 
 // ─── Headers ──────────────────────────────────────────────────────────────────
 
+// Single-header variant: returns the highlighted HTML for ONE header line.
+// Used when callers need to render each header as its own row (e.g. with
+// a per-row delete button in edit mode).
+export function highlightHeaderLine(h, maskSensitive = false) {
+  const idx = h.indexOf(':')
+  if (idx === -1) return `<span class="hdr-value">${esc(h)}</span>`
+  const name = h.slice(0, idx)
+  const value = h.slice(idx + 1)
+  const isSensitive = SENSITIVE_HEADERS.includes(name.trim().toLowerCase())
+  const nameClass = isSensitive ? 'hdr-sensitive' : 'hdr-name'
+  const displayValue = isSensitive && maskSensitive
+    ? ' ' + '•'.repeat(Math.min(value.trim().length, 24))
+    : esc(value)
+  return `<span class="${nameClass}">${esc(name)}</span>` +
+    `<span class="hdr-sep">:</span>` +
+    `<span class="hdr-value">${displayValue}</span>`
+}
+
+// Original multi-header variant: joins each highlighted line with '\n' for
+// use in a single block with `white-space: pre-wrap`.
 export function highlightHeaders(headers, maskSensitive = false) {
-  return headers.map(h => {
-    const idx = h.indexOf(':')
-    if (idx === -1) return `<span class="hdr-value">${esc(h)}</span>`
-    const name = h.slice(0, idx)
-    const value = h.slice(idx + 1)
-    const isSensitive = SENSITIVE_HEADERS.includes(name.trim().toLowerCase())
-    const nameClass = isSensitive ? 'hdr-sensitive' : 'hdr-name'
-    const displayValue = isSensitive && maskSensitive
-      ? ' ' + '•'.repeat(Math.min(value.trim().length, 24))
-      : esc(value)
-    return `<span class="${nameClass}">${esc(name)}</span>` +
-      `<span class="hdr-sep">:</span>` +
-      `<span class="hdr-value">${displayValue}</span>`
-  }).join('\n')
+  return headers.map((h) => highlightHeaderLine(h, maskSensitive)).join('\n')
 }

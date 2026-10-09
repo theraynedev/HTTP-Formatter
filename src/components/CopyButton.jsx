@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Copy, Check } from "lucide-react";
+import { Copy3, Check } from "reicon-react";
 
 export default function CopyButton({ getText, size = 16, className = "" }) {
   const [copied, setCopied] = useState(false);
@@ -16,13 +16,13 @@ export default function CopyButton({ getText, size = 16, className = "" }) {
   return (
     <button
       onClick={handleCopy}
-      className={`flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white border border-white/10 transition ${className}`}
+      className={`flex items-center justify-center rounded-control bg-surface-raised hover:bg-surface-overlay text-fg-muted hover:text-fg border border-line transition ${className}`}
       title="Copy"
     >
       {copied ? (
-        <Check size={size} className="text-green-400" />
+        <Check size={size} className="text-success" />
       ) : (
-        <Copy size={size} />
+        <Copy3 size={size} />
       )}
     </button>
   );

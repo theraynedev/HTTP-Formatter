@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Copy, Check, ChevronDown } from 'lucide-react'
+import { Copy3, Check, ChevronDown } from 'reicon-react'
 
 // A copy button that optionally opens a dropdown of copy formats
 // props:
@@ -35,12 +35,12 @@ export default function CopyDropdown({ options = [], size = 14, className = '' }
     return (
       <button
         onClick={() => doCopy(0)}
-        className={`flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white border border-white/10 transition ${className}`}
+        className={`flex items-center justify-center rounded-control bg-surface-raised hover:bg-surface-overlay text-fg-muted hover:text-fg border border-line transition ${className}`}
         title={options[0].label}
       >
         {copiedIdx === 0
-          ? <Check size={size} className="text-green-400" />
-          : <Copy size={size} />}
+          ? <Check size={size} className="text-success" />
+          : <Copy3 size={size} />}
       </button>
     )
   }
@@ -48,19 +48,19 @@ export default function CopyDropdown({ options = [], size = 14, className = '' }
   return (
     <div className={`relative ${className}`} ref={ref}>
       {/* Split button: left = copy first option, right = open dropdown */}
-      <div className="flex items-center rounded-lg border border-white/10 overflow-hidden">
+      <div className="flex items-center rounded-control border border-line overflow-hidden">
         <button
           onClick={() => doCopy(0)}
-          className="flex items-center justify-center px-2 py-1.5 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition"
+          className="flex items-center justify-center px-2 py-1.5 bg-surface-raised hover:bg-surface-overlay text-fg-muted hover:text-fg transition"
           title={options[0].label}
         >
           {copiedIdx === 0
-            ? <Check size={size} className="text-green-400" />
-            : <Copy size={size} />}
+            ? <Check size={size} className="text-success" />
+            : <Copy3 size={size} />}
         </button>
         <button
           onClick={() => setOpen(v => !v)}
-          className="flex items-center justify-center px-1 py-1.5 bg-white/5 hover:bg-white/10 text-gray-500 hover:text-white border-l border-white/10 transition"
+          className="flex items-center justify-center px-1 py-1.5 bg-surface-raised hover:bg-surface-overlay text-fg-subtle hover:text-fg border-l border-line transition"
           title="More copy options"
         >
           <ChevronDown size={10} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
@@ -68,16 +68,16 @@ export default function CopyDropdown({ options = [], size = 14, className = '' }
       </div>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1 z-50 min-w-[180px] bg-[#111] border border-white/10 rounded-xl shadow-xl overflow-hidden">
+        <div className="absolute right-0 top-full mt-1 z-50 min-w-[180px] bg-surface-overlay border border-line rounded-card shadow-pop overflow-hidden">
           {options.map((opt, i) => (
             <button
               key={i}
               onClick={() => doCopy(i)}
-              className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-gray-300 hover:bg-white/10 hover:text-white transition text-left"
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-fg hover:bg-surface-overlay hover:text-fg transition text-left"
             >
               {copiedIdx === i
-                ? <Check size={12} className="text-green-400 shrink-0" />
-                : <Copy size={12} className="shrink-0 text-gray-500" />}
+                ? <Check size={12} className="text-success shrink-0" />
+                : <Copy3 size={12} className="shrink-0 text-fg-subtle" />}
               {opt.label}
             </button>
           ))}
