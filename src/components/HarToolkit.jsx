@@ -391,9 +391,10 @@ function SubTabBar({ tab, setTab }) {
         <button
           key={t.id}
           onClick={() => setTab(t.id)}
+          aria-pressed={tab === t.id}
           className={`px-3 py-2 text-xs font-semibold transition border-b-2 -mb-px ${
             tab === t.id
-              ? "text-fg border-fg"
+              ? "text-accent-text border-accent bg-accent/10"
               : "text-fg-subtle border-transparent hover:text-fg hover:border-line-strong"
           }`}
         >
@@ -521,24 +522,26 @@ export default function HarToolkit({ addToast, seed, onSeedConsumed }) {
   // ── Render ─────────────────────────────────────────────────────────────────
   if (!parsed) {
     return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-lg font-semibold text-fg">HAR Analyzer</h1>
-          <p className="text-xs text-fg-subtle mt-1">
-            Inspect, filter, and export HTTP Archive (HAR) files. Drop a HAR
-            exported from Chrome DevTools, Safari, or Fiddler.
-          </p>
+      <div className="h-full min-h-0 overflow-y-auto pane-scroll">
+        <div className="space-y-6 pb-4">
+          <div>
+            <h1 className="text-lg font-semibold text-fg">HAR Analyzer</h1>
+            <p className="text-xs text-fg-subtle mt-1">
+              Inspect, filter, and export HTTP Archive (HAR) files. Drop a HAR
+              exported from Chrome DevTools, Safari, or Fiddler.
+            </p>
+          </div>
+          <HarDropZone onLoad={handleLoad} addToast={addToast} />
         </div>
-        <HarDropZone onLoad={handleLoad} addToast={addToast} />
       </div>
     );
   }
 
   // After successful parse
   return (
-    <div className="space-y-4">
+    <div className="h-full min-h-0 flex flex-col gap-4">
       {/* ── Header ── */}
-      <div className="flex items-end justify-between gap-3 flex-wrap">
+      <div className="shrink-0 flex items-end justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-lg font-semibold text-fg">HAR Analyzer</h1>
           <p className="text-xs text-fg-subtle mt-0.5">
@@ -550,57 +553,63 @@ export default function HarToolkit({ addToast, seed, onSeedConsumed }) {
       </div>
 
       {/* ── File meta strip ── */}
-      <FileMetaStrip
-        fileMeta={fileMeta}
-        log={parsed.log}
-        entries={entries}
-        onReset={handleReset}
-      />
+      <div className="shrink-0">
+        <FileMetaStrip
+          fileMeta={fileMeta}
+          log={parsed.log}
+          entries={entries}
+          onReset={handleReset}
+        />
+      </div>
 
       {/* ── Sub-tabs ── */}
-      <SubTabBar tab={tab} setTab={setTab} />
+      <div className="shrink-0">
+        <SubTabBar tab={tab} setTab={setTab} />
+      </div>
 
       {/* ── Active panel ── */}
-      {tabLoading ? (
-        <SkeletonGroup label="">
-          <SkeletonRows count={8} />
-        </SkeletonGroup>
-      ) : (
-        <div>
-          <div style={{ display: tab === "entries" ? "block" : "none" }}>
-            <HarEntriesPanel
-              entries={entries}
-              filteredEntries={filteredEntries}
-              search={search}
-              setSearch={setSearch}
-              methods={methods}
-              toggleMethod={toggleMethod}
-              statuses={statuses}
-              toggleStatus={toggleStatus}
-              hosts={hosts}
-              toggleHost={toggleHost}
-              resetFilters={resetFilters}
-              availableHosts={availableHosts}
-              pendingSelectedIndex={pendingSelectedIndex}
-            />
+      <div className="flex-1 min-h-0 overflow-y-auto pane-scroll">
+        {tabLoading ? (
+          <SkeletonGroup label="">
+            <SkeletonRows count={8} />
+          </SkeletonGroup>
+        ) : (
+          <div className="pb-4">
+            <div style={{ display: tab === "entries" ? "block" : "none" }}>
+              <HarEntriesPanel
+                entries={entries}
+                filteredEntries={filteredEntries}
+                search={search}
+                setSearch={setSearch}
+                methods={methods}
+                toggleMethod={toggleMethod}
+                statuses={statuses}
+                toggleStatus={toggleStatus}
+                hosts={hosts}
+                toggleHost={toggleHost}
+                resetFilters={resetFilters}
+                availableHosts={availableHosts}
+                pendingSelectedIndex={pendingSelectedIndex}
+              />
+            </div>
+            <div style={{ display: tab === "insights" ? "block" : "none" }}>
+              <HarInsightsPanel
+                insights={insights}
+                entries={entries}
+                onSelect={handleSelectFromInsights}
+              />
+            </div>
+            <div style={{ display: tab === "export" ? "block" : "none" }}>
+              <HarExportPanel
+                entries={entries}
+                filteredEntries={filteredEntries}
+                rawLog={rawLog}
+                addToast={addToast}
+              />
+            </div>
           </div>
-          <div style={{ display: tab === "insights" ? "block" : "none" }}>
-            <HarInsightsPanel
-              insights={insights}
-              entries={entries}
-              onSelect={handleSelectFromInsights}
-            />
-          </div>
-          <div style={{ display: tab === "export" ? "block" : "none" }}>
-            <HarExportPanel
-              entries={entries}
-              filteredEntries={filteredEntries}
-              rawLog={rawLog}
-              addToast={addToast}
-            />
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

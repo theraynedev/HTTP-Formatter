@@ -41,7 +41,7 @@ export default function TextCodecTool({ tool }) {
   const lineCount = input ? input.split("\n").length : 0;
 
   return (
-    <div className="space-y-4">
+    <div className="h-full min-h-0 flex flex-col gap-4">
       {/* ── Options ── */}
       {hasToggles && (
         <div className="flex items-center gap-2 flex-wrap">
@@ -61,9 +61,9 @@ export default function TextCodecTool({ tool }) {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:flex-1 lg:min-h-0 lg:items-stretch">
         {/* ── Input ── */}
-        <section className="min-w-0">
+        <section className="min-w-0 flex flex-col lg:min-h-0">
           <FieldLabel
             right={
               <span className="text-2xs text-fg-subtle font-mono">
@@ -80,7 +80,7 @@ export default function TextCodecTool({ tool }) {
             spellCheck={false}
             autoComplete="off"
             placeholder={tool.placeholder}
-            className="w-full h-64 bg-surface border border-line rounded-card p-3 font-mono text-sm text-fg placeholder-fg-subtle focus:outline-none focus:ring-2 focus:ring-accent/15 resize-none leading-relaxed pane-scroll"
+            className="w-full h-80 lg:h-auto lg:flex-1 min-h-[18rem] lg:min-h-0 bg-surface border border-line rounded-card p-3 font-mono text-sm text-fg placeholder-fg-subtle focus:outline-none focus:ring-2 focus:ring-accent/15 resize-none leading-relaxed pane-scroll"
           />
           <div className="flex items-center gap-2 mt-2">
             <button
@@ -100,7 +100,7 @@ export default function TextCodecTool({ tool }) {
         </section>
 
         {/* ── Output ── */}
-        <section className="min-w-0">
+        <section className="min-w-0 flex flex-col lg:min-h-0">
           <FieldLabel
             right={
               <span className="flex items-center gap-2">
@@ -128,11 +128,18 @@ export default function TextCodecTool({ tool }) {
           {result.ok ? (
             <OutputBox
               text={result.text}
-              maxH="max-h-64"
+              maxH="max-h-80 lg:max-h-none"
+              className="lg:flex-1 lg:min-h-0"
               empty="Output appears as you type."
             />
           ) : (
-            <OutputBox text="" empty={result.error} maxH="max-h-64" tone="error" />
+            <OutputBox
+              text=""
+              empty={result.error}
+              maxH="max-h-80 lg:max-h-none"
+              className="lg:flex-1 lg:min-h-0"
+              tone="error"
+            />
           )}
           {!result.ok && (
             <p className="text-xs text-warning/90 mt-1.5 px-1">{result.error}</p>

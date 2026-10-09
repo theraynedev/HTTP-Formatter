@@ -338,7 +338,16 @@ function SidebarGroup({ label, accent, tools, activeId, onSelect }) {
 
 export default function Base64Toolkit({ addToast }) {
   const [activeId, setActiveId] = useState(DEFAULT_TOOL);
+  const [visitedIds, setVisitedIds] = useState(() => new Set([DEFAULT_TOOL]));
   const [query, setQuery] = useState("");
+
+  const selectTool = (id) => {
+    setActiveId(id);
+    setVisitedIds((visited) => {
+      if (visited.has(id)) return visited;
+      return new Set(visited).add(id);
+    });
+  };
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -354,7 +363,6 @@ export default function Base64Toolkit({ addToast }) {
 
   const active = TOOLS.find((t) => t.id === activeId) ?? TOOLS[0];
   const accent = ACCENTS[active.group];
-  const Workspace = WORKSPACES[active.kind];
   const ActiveIcon = active.icon;
 
   return (
@@ -406,14 +414,14 @@ export default function Base64Toolkit({ addToast }) {
                 accent={ACCENTS.decode}
                 tools={decoders}
                 activeId={activeId}
-                onSelect={setActiveId}
+                onSelect={selectTool}
               />
               <SidebarGroup
                 label="Encoders"
                 accent={ACCENTS.encode}
                 tools={encoders}
                 activeId={activeId}
-                onSelect={setActiveId}
+                onSelect={selectTool}
               />
             </>
           )}
@@ -427,12 +435,12 @@ export default function Base64Toolkit({ addToast }) {
       </aside>
 
       {/* ══ Workspace ══ */}
-      <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
+      <div className="flex-1 min-w-0 min-h-0 flex flex-col overflow-hidden">
         {/* Mobile picker — the sidebar is hidden below md */}
         <div className="md:hidden shrink-0 p-3 border-b border-line">
           <select
             value={activeId}
-            onChange={(e) => setActiveId(e.target.value)}
+            onChange={(e) => selectTool(e.target.value)}
             className="w-full bg-surface border border-line rounded-control px-3 py-2 text-sm font-medium text-fg focus:outline-none focus:border-accent"
           >
             <optgroup label="Decoders">
@@ -477,8 +485,18 @@ export default function Base64Toolkit({ addToast }) {
         </div>
 
         {/* Tool body */}
-        <div className="flex-1 pane-scroll px-5 py-5">
-          <Workspace tool={active} addToast={addToast} />
+        <div className="flex-1 min-h-0 flex flex-col pane-scroll px-5 py-5">
+          {TOOLS.filter((tool) => visitedIds.has(tool.id)).map((tool) => {
+            const Workspace = WORKSPACES[tool.kind];
+            return (
+              <div
+                key={tool.id}
+                className={`flex-1 min-h-0 ${activeId === tool.id ? "" : "hidden"}`}
+              >
+                <Workspace tool={tool} addToast={addToast} />
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

@@ -99,7 +99,13 @@ function triggerDownload(blob, filename) {
 
 // ─── Output panel ─────────────────────────────────────────────────────────────
 
-export function OutputBox({ text, empty, maxH = "max-h-72", tone = "default" }) {
+export function OutputBox({
+  text,
+  empty,
+  maxH = "max-h-72",
+  tone = "default",
+  className = "",
+}) {
   const has = typeof text === "string" && text.length > 0;
   const border =
     tone === "error"
@@ -107,7 +113,7 @@ export function OutputBox({ text, empty, maxH = "max-h-72", tone = "default" }) 
       : "border-line bg-surface";
   return (
     <div
-      className={`rounded-card border ${border} p-3 font-mono text-sm overflow-auto pane-scroll ${maxH}`}
+      className={`rounded-card border ${border} p-3 font-mono text-sm overflow-auto pane-scroll ${maxH} ${className}`}
     >
       {has ? (
         <pre className="whitespace-pre-wrap break-all text-fg leading-6">

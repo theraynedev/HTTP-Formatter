@@ -94,7 +94,7 @@ function ChipToggle({ active, onClick, children, accent = "white" }) {
         ? "border-danger/40 bg-danger/15 text-danger"
         : "border-line bg-surface text-fg-subtle hover:text-fg"
       : active
-        ? "border-line bg-surface-raised text-fg"
+        ? "border-accent/40 bg-accent/15 text-accent-text"
         : "border-line bg-surface text-fg-subtle hover:text-fg";
   return (
     <button
@@ -113,6 +113,8 @@ const DETAIL_TABS = [
   { id: "response", label: "Response" },
   { id: "timing", label: "Timing" },
 ];
+
+const MAX_FORMATTED_BODY_LENGTH = 100_000;
 
 function EntryDetail({ entry }) {
   const [tab, setTabRaw] = useState("request");
@@ -237,7 +239,7 @@ function ResponseView({ entry }) {
       <DetailKV label="Size" value={formatBytes(entry.responseSize)} mono />
       <DetailKV label="Type" value={entry.responseContentType ?? "—"} mono />
       <HeadersView headers={entry.responseHeaders} />
-      {entry.responseBody && (
+      {entry.responseBody ? (
         <BodyView
           label="Response Body"
           contentType={entry.responseContentType}
@@ -245,6 +247,8 @@ function ResponseView({ entry }) {
           encoding={entry.contentEncoding}
           isBase64={entry.isBase64}
         />
+      ) : (
+        <Empty text="No response body was captured." />
       )}
     </div>
   );
@@ -441,7 +445,11 @@ function BodyView({ label, contentType, body, encoding, isBase64 }) {
   // Compact only offered for something we can actually re-serialise — a
   // pretty-printed JSON body. Derived from the *current* text, so it follows
   // the base64 toggle.
-  const canCompact = useMemo(() => isParseableJson(source), [source]);
+  const canCompact = useMemo(
+    () =>
+      source.length <= MAX_FORMATTED_BODY_LENGTH && isParseableJson(source),
+    [source],
+  );
   const text = compact && canCompact ? compactJson(source) : source;
   const isJson = (contentType ?? "").toLowerCase().includes("json");
   const encodingBadge =
@@ -517,10 +525,12 @@ function BodyView({ label, contentType, body, encoding, isBase64 }) {
         <CopyButton getText={() => text} size={11} className="w-6 h-6" />
       </div>
       <pre
-        className="font-mono text-xs leading-5 whitespace-pre-wrap break-all text-fg bg-surface border border-line rounded-card p-3 max-h-72 overflow-auto pane-scroll"
+        className="font-mono text-xs leading-5 whitespace-pre-wrap break-all text-fg bg-surface border border-line rounded-card p-3 max-h-[50vh] overflow-auto pane-scroll"
         dangerouslySetInnerHTML={{
           __html:
-            isJson && typeof text === "string"
+            isJson &&
+            typeof text === "string" &&
+            text.length <= MAX_FORMATTED_BODY_LENGTH
               ? highlightJson(text, compact ? 0 : 2)
               : escapeHtml(text),
         }}
@@ -576,7 +586,9 @@ function EntryRow({ entry, selected, onSelect }) {
     <button
       onClick={onSelect}
       className={`w-full grid grid-cols-[70px_60px_minmax(0,1fr)_70px_70px] items-center gap-2 px-3 py-2 text-left text-xs transition border-b border-line ${
-        selected ? "bg-surface" : "hover:bg-surface-raised"
+        selected
+          ? "bg-accent/10 shadow-[inset_2px_0_0_rgb(var(--c-accent))]"
+          : "hover:bg-surface-raised"
       }`}
     >
       <MethodBadge method={entry.method} size="xs" />

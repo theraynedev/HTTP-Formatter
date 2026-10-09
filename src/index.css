@@ -30,6 +30,7 @@
 :root,
 html.dark {
   color-scheme: dark;
+  --c-selection: 255 77 0;
 
   /* Elevation — layered backgrounds, never shadows */
   --c-canvas: 16 16 20; /* #101014 · level 0 */
@@ -89,6 +90,7 @@ html.dark {
 
 html.light {
   color-scheme: light;
+  --c-selection: 255 77 0;
 
   /* Elevation — inverts: cards are white on a tinted canvas */
   --c-canvas: 247 247 249; /* #F7F7F9 */
@@ -182,7 +184,7 @@ html.light {
   }
 
   ::selection {
-    background: rgb(var(--c-accent) / 0.28);
+    background: rgb(var(--c-selection) / 0.32);
     color: rgb(var(--c-fg));
   }
 }

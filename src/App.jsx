@@ -134,6 +134,15 @@ export default function App() {
   const { toasts, add: addToast, remove: removeToast } = useToasts();
 
   const [page, setPage] = useState("formatter"); // formatter | json | history | compare
+  const [visitedPages, setVisitedPages] = useState(() => new Set(["formatter"]));
+  const navigateToPage = (nextPage) => {
+    setPage(nextPage);
+    if (nextPage !== "compare") {
+      setVisitedPages((visited) =>
+        visited.has(nextPage) ? visited : new Set(visited).add(nextPage),
+      );
+    }
+  };
   const [outputTab, setOutputTabRaw] = useState("output");
   const [outputTabLoading, setOutputTabLoading] = useState(false);
 
@@ -270,14 +279,14 @@ export default function App() {
       `Imported ${entries.length} request${entries.length !== 1 ? "s" : ""} from HAR.`,
       "success",
     );
-    setPage("history");
+    navigateToPage("history");
   };
 
   const handleLoadHistory = (entry) => {
     setInput(entry.raw);
     const result = parseRequest(entry.raw, includeCookie);
     setParsed(result);
-    setPage("formatter");
+    navigateToPage("formatter");
     setOutputTab("output");
   };
 
@@ -302,7 +311,7 @@ export default function App() {
         parsed: result,
         fileMeta: { name: entry.customName ?? entry.name, size: text.length },
       });
-      setPage("har");
+      navigateToPage("har");
       addToast("Sent to HAR Analyzer.", "success", 1600);
     } catch (err) {
       // Never fail silently: a throw here is indistinguishable from a dead
@@ -403,7 +412,7 @@ export default function App() {
                   ))}
                 <button
                   onClick={() => {
-                    setPage(n.id);
+                    navigateToPage(n.id);
                     if (n.id !== "history") setCompareEntries(null);
                   }}
                   title={navCollapsed ? n.label : undefined}
@@ -494,8 +503,12 @@ export default function App() {
             output pushed the output pane completely out of a 390px viewport
             (the shell clips it, so it was unreachable). Column-first keeps the
             desktop layout byte-for-byte and makes the narrow one usable. */}
-        {page === "formatter" && (
-          <div className="flex-1 flex flex-col lg:flex-row min-w-0 min-h-0 overflow-hidden">
+        {visitedPages.has("formatter") && (
+          <div
+            className={`flex-1 flex flex-col lg:flex-row min-w-0 min-h-0 overflow-hidden ${
+              page === "formatter" ? "" : "hidden"
+            }`}
+          >
             {/* ── Left pane: input ── */}
             <div className="flex flex-col shrink-0 h-[42%] lg:h-auto w-full lg:w-[420px] min-h-0 border-b lg:border-b-0 lg:border-r border-line p-4">
               <InputPanel
@@ -590,15 +603,23 @@ export default function App() {
         )}
 
         {/* ── JSON UTILITY page ── */}
-        {page === "json" && (
-          <div className="flex-1 pane-scroll px-4 sm:px-6 py-5 w-full">
+        {visitedPages.has("json") && (
+          <div
+            className={`flex-1 pane-scroll px-4 sm:px-6 py-5 w-full ${
+              page === "json" ? "" : "hidden"
+            }`}
+          >
             <JsonUtility addToast={addToast} />
           </div>
         )}
 
         {/* ── HAR ANALYZER page ── */}
-        {page === "har" && (
-          <div className="flex-1 pane-scroll px-4 sm:px-6 py-5 w-full">
+        {visitedPages.has("har") && (
+          <div
+            className={`flex-1 min-h-0 overflow-hidden px-4 sm:px-6 py-5 w-full ${
+              page === "har" ? "flex flex-col" : "hidden"
+            }`}
+          >
             <HarToolkit
               addToast={addToast}
               seed={harSeed}
@@ -608,23 +629,47 @@ export default function App() {
         )}
 
         {/* ── BASE64 TOOLKIT page — owns its own sidebar + workspace layout ── */}
-        {page === "base64" && <Base64Toolkit addToast={addToast} />}
+        {visitedPages.has("base64") && (
+          <div
+            className={`flex-1 min-w-0 min-h-0 ${page === "base64" ? "flex" : "hidden"}`}
+          >
+            <Base64Toolkit addToast={addToast} />
+          </div>
+        )}
 
         {/* ── MASKIFY page — string → ?d/?l/?u mask pattern ── */}
-        {page === "maskify" && (
-          <div className="flex-1 pane-scroll px-4 sm:px-6 py-5 w-full">
+        {visitedPages.has("maskify") && (
+          <div
+            className={`flex-1 pane-scroll px-4 sm:px-6 py-5 w-full ${
+              page === "maskify" ? "" : "hidden"
+            }`}
+          >
             <MaskifyTool />
           </div>
         )}
 
         {/* ── UTILITY pages — each promoted to its own nav entry ── */}
         {UTILITIES.map(
-          (u) => page === u.id && <UtilityPage key={u.id} id={u.id} />,
+          (u) =>
+            visitedPages.has(u.id) && (
+              <div
+                key={u.id}
+                className={`flex-1 min-w-0 min-h-0 ${
+                  page === u.id ? "" : "hidden"
+                }`}
+              >
+                <UtilityPage id={u.id} />
+              </div>
+            ),
         )}
 
         {/* ── HISTORY page ── */}
-        {page === "history" && !compareEntries && (
-          <div className="flex-1 pane-scroll px-6 py-5 max-w-6xl w-full mx-auto">
+        {visitedPages.has("history") && (
+          <div
+            className={`flex-1 pane-scroll px-6 py-5 max-w-6xl w-full mx-auto ${
+              page === "history" && !compareEntries ? "" : "hidden"
+            }`}
+          >
             <HistoryPanel
               history={history}
               onLoad={handleLoadHistory}

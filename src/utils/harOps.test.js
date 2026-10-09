@@ -35,6 +35,30 @@ test("historyEntryToHar builds a HAR 1.2 document with one entry", () => {
   assert.equal(har.log.creator.name, "HTTP Formatter History");
 });
 
+test("parseHarFile preserves large response bodies", () => {
+  const responseBody = "large response ".repeat(20_000);
+  const result = parseHarFile(
+    JSON.stringify({
+      log: {
+        version: "1.2",
+        entries: [
+          {
+            request: { method: "GET", url: "https://example.com/large" },
+            response: {
+              status: 200,
+              content: { mimeType: "text/plain", size: responseBody.length, text: responseBody },
+            },
+          },
+        ],
+      },
+    }),
+  );
+
+  assert.equal(result.ok, true);
+  assert.equal(result.entries[0].responseBody, responseBody);
+  assert.equal(result.entries[0].responseSize, responseBody.length);
+});
+
 test("historyEntryToHar upper-cases the method and keeps the url", () => {
   const e = historyEntryToHar(ENTRY).log.entries[0];
   assert.equal(e.request.method, "POST");
